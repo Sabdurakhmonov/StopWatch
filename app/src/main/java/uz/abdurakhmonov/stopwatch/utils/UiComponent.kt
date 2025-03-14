@@ -117,8 +117,8 @@ fun AnimatedButton(
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.85f else 1f,
-        animationSpec = tween(durationMillis = 200), label = ""
+        targetValue = if (isPressed) 0.88f else 1f,
+        animationSpec = tween(durationMillis = 150), label = ""
     )
     val coroutine = rememberCoroutineScope()
 
@@ -128,7 +128,7 @@ fun AnimatedButton(
             onClick.invoke()
             isPressed = !isPressed
             coroutine.launch(Dispatchers.Unconfined) {
-                delay(180)
+                delay(150)
                 isPressed = !isPressed
                 cancel()
             }

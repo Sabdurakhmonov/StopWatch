@@ -1,6 +1,9 @@
 package uz.abdurakhmonov.stopwatch.screen.home_screen
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.media.MediaPlayer
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -22,9 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import uz.abdurakhmonov.domain.remote.History
 import uz.abdurakhmonov.stopwatch.R
 import uz.abdurakhmonov.stopwatch.ui.theme.fontFamily
 import uz.abdurakhmonov.stopwatch.ui.theme.primary
@@ -47,12 +58,15 @@ import uz.abdurakhmonov.stopwatch.utils.Orientation
 import uz.abdurakhmonov.stopwatch.utils.dpToSp
 import uz.abdurakhmonov.stopwatch.utils.state
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun HomeScreenContent(
     viewModel: HomeScreenVM,
 ) {
-
+    val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
     when(configuration.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
@@ -67,16 +81,13 @@ fun HomeScreenContent(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
-                    //viewModel.onStart()
-                }
-                Lifecycle.Event.ON_RESUME->{
-
-                }
-                Lifecycle.Event.ON_PAUSE->{
-                    viewModel.onPause()
+                    viewModel.onStart()
                 }
                 Lifecycle.Event.ON_STOP->{
                     viewModel.onStop()
+                }
+                Lifecycle.Event.ON_DESTROY->{
+                    viewModel.onDestroy()
                 }
                 else->{}
             }
@@ -90,7 +101,10 @@ fun HomeScreenContent(
     }
 
     val screenState by viewModel.screenState.collectAsState(initial = true)
-    val itemFlags by viewModel.stateFlags.collectAsState(initial = emptyList())
+    var itemFlags = mutableListOf<History>()
+    viewModel.stateFlags.onEach {
+        itemFlags = it.toMutableList()
+    }.launchIn(scope)
 
     val timer by viewModel.stateStopWatch.collectAsState(initial = "00:00:00")
     val stateBtn by viewModel.stateBtn.collectAsState(initial = BtnState.START)
@@ -136,7 +150,7 @@ fun HomeScreenContent(
                 LazyColumn(
                     modifier = Modifier
                         .padding(bottom = 32.dp)
-                        .weight(weight = if(screenState) animatedItems else 0.3f),
+                        .weight(weight = if (screenState) animatedItems else 0.3f),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
                     items(items = itemFlags.reversed()) { itemFlags ->
@@ -160,6 +174,10 @@ fun HomeScreenContent(
                         icon = painterResource(id = R.drawable.ic_play)
                     ) {
                         viewModel.clickStart()
+                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
+                            start() // Tugma bosilganda tovush ijro etish
+                        }
                     }
                 } else {
                     AnimatedButton(
@@ -170,6 +188,10 @@ fun HomeScreenContent(
                         icon = state(state = stateBtn, 0)
                     ) {
                         viewModel.clickLeft()
+                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
+                            start() // Tugma bosilganda tovush ijro etish
+                        }
                     }
                     AnimatedButton(
                         modifier = Modifier
@@ -179,6 +201,10 @@ fun HomeScreenContent(
                         icon = state(state = stateBtn, 1)
                     ) {
                         viewModel.clickRight()
+                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
+                            start() // Tugma bosilganda tovush ijro etish
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package uz.abdurakhmonov.data.repository
 
+import kotlinx.coroutines.flow.Flow
 import uz.abdurakhmonov.data.local.LocalDataStore
 import uz.abdurakhmonov.data.remote.HistoryDate
 import javax.inject.Inject
@@ -14,7 +15,7 @@ internal class RepositoryImpl @Inject constructor(
 
     override suspend fun setFlags(flags: List<HistoryDate>) { localDataSource.setFlags(flags) }
 
-    override suspend fun getFlags(): List<HistoryDate> = localDataSource.getFlags()
+    override fun getFlags(): Flow<List<HistoryDate>> = localDataSource.getFlags()
 
     override suspend fun getState(): String = localDataSource.getState()
 

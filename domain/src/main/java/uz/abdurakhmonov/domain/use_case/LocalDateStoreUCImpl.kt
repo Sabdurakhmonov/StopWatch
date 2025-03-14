@@ -1,5 +1,7 @@
 package uz.abdurakhmonov.domain.use_case
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import uz.abdurakhmonov.data.repository.Repository
 import uz.abdurakhmonov.domain.mapper.toData
 import uz.abdurakhmonov.domain.mapper.toDomain
@@ -16,7 +18,11 @@ internal class LocalDateStoreUCImpl @Inject constructor(
 
     override suspend fun setFlags(flags: List<History>) { repository.setFlags(flags.map { it.toData() }) }
 
-    override suspend fun getFlags(): List<History> = repository.getFlags().map { it.toDomain() }
+    override fun getFlags(): Flow<List<History>> = flow {
+        repository.getFlags().collect{
+            emit(it.map { it.toDomain() })
+        }
+    }
 
     override suspend fun getState(): String =repository.getState()
 

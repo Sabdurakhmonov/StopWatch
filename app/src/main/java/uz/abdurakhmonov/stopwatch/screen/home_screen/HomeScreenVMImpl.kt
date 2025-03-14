@@ -5,12 +5,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import uz.abdurakhmonov.domain.remote.History
 import uz.abdurakhmonov.domain.use_case.LocalDateStoreUC
@@ -27,7 +30,7 @@ class HomeScreenVMImpl @Inject constructor(
 
     override var stateStart = MutableStateFlow(true)
     override val stateStopWatch = MutableStateFlow("00:00:00")
-    override val stateFlags = MutableStateFlow<List<History>>(emptyList())
+    override val stateFlags = MutableSharedFlow<List<History>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
     override val stateBtn = MutableStateFlow(BtnState.START)
     override val animationText = MutableStateFlow(Animations(64.dp, 0.9f, 0.1f))
     override val screenOrientation = MutableStateFlow(Orientation.POR)
@@ -48,8 +51,9 @@ class HomeScreenVMImpl @Inject constructor(
         process.value = true
         start()
     }
+
     init {
-        onStart()
+        //onStart()
     }
 
     override fun clickRight() {
@@ -57,7 +61,6 @@ class HomeScreenVMImpl @Inject constructor(
             BtnState.START -> {
                 stateBtn.value = BtnState.PAUSE
                 process.value = false
-                job?.cancel()
             }
 
             else -> {
@@ -72,13 +75,10 @@ class HomeScreenVMImpl @Inject constructor(
         when (stateBtn.value) {
             BtnState.PAUSE -> {
                 clear()
-                job?.cancel()
             }
 
             else -> {
-                if(stateStart.value){
-                    animationText.value = Animations(40.dp, 0.1f, 0.9f)
-                }
+                animationText.value = Animations(40.dp, 0.1f, 0.9f)
                 clickFlag()
             }
         }
@@ -98,7 +98,8 @@ class HomeScreenVMImpl @Inject constructor(
             )
         )
         lastTime = timer
-        val newList = flags.toList()
+        val newList = mutableListOf<History>()
+        newList.addAll(flags.toList())
         viewModelScope.launch {
             stateFlags.emit(newList)
         }
@@ -119,53 +120,60 @@ class HomeScreenVMImpl @Inject constructor(
 
     override fun onStart() {
         viewModelScope.launch {
-            when (useCase.getState()) {
+
+            counterFlag = useCase.getCounter()
+
+            val state = useCase.getState()
+            when (state) {
                 "START" -> {
-                    if (useCase.getFlags().isNotEmpty()) {
-                        animationText.value = Animations(40.dp, 0.1f, 0.9f)
-                    }
+                    Log.d("AAA", "onStart: onStart")
                     stateBtn.value = BtnState.START
                     if (useCase.getDate() > 0L) {
                         timer = System.currentTimeMillis() - useCase.getDate() + useCase.getTimer()
                     }
+                    flags.clear()
                     stateStopWatch.value = timer.toTime()
-                    flags.addAll(useCase.getFlags())
-                    counterFlag = useCase.getCounter()
-                    stateFlags.value = flags
+                    useCase.getFlags().onEach {
+                        if (it.isNotEmpty()) {
+                            animationText.value = Animations(40.dp, 0.1f, 0.9f)
+                        }
+                        flags.addAll(it)
+                    }.launchIn(viewModelScope)
+                    stateFlags.emit(flags.toList())
                     stateStart.value = false
+                    process.value = true
                     start()
                 }
 
                 "PAUSE" -> {
-                    if (useCase.getFlags().isNotEmpty()) {
-                        animationText.value = Animations(40.dp, 0.1f, 0.9f)
-                    }
+                    useCase.getFlags().onEach {
+                        if (it.isNotEmpty()) {
+                            animationText.value = Animations(40.dp, 0.1f, 0.9f)
+                        }
+                        flags.clear()
+                        flags.addAll(it)
+                        stateFlags.emit(flags)
+                    }.launchIn(viewModelScope)
+
                     stateBtn.value = BtnState.PAUSE
                     timer = useCase.getTimer()
+
                     stateStopWatch.value = timer.toTime()
-                    stateFlags.value = useCase.getFlags()
                     stateStart.value = false
                 }
 
                 else -> {
-                    Log.d("AAA", "onStart: Clear")
                     clear()
                 }
             }
         }
     }
 
-    override fun onResume() {
-    }
-
-    override fun onPause() {
-        //
-    }
-
     override fun onStop() {
         when (stateBtn.value) {
             BtnState.START -> {
                 viewModelScope.launch {
+                    Log.d("AAA", "onStop: START")
                     useCase.setState(stateBtn.value.name)
                     useCase.setTimer(timer)
                     useCase.setDate(System.currentTimeMillis())
@@ -198,13 +206,46 @@ class HomeScreenVMImpl @Inject constructor(
     }
 
     override fun onDestroy() {
+        when (stateBtn.value) {
+            BtnState.START -> {
+                Log.d("AAA", "onDestroy: Start")
+                viewModelScope.launch {
+                    useCase.setState(stateBtn.value.name)
+                    useCase.setTimer(timer)
+                    useCase.setDate(System.currentTimeMillis())
+                    useCase.setFlags(flags)
+                    stateBtn.value = BtnState.START
+                    useCase.setCounter(counterFlag)
+                }
+            }
 
+            BtnState.STOP -> {
+                viewModelScope.launch {
+                    useCase.setState("STOP")
+                }
+                clear()
+            }
+
+            BtnState.PAUSE -> {
+                Log.d("AAA", "onDestroy: PAUSE")
+                viewModelScope.launch {
+                    useCase.setState(stateBtn.value.name)
+                    useCase.setTimer(timer)
+                    useCase.setDate(System.currentTimeMillis())
+                    useCase.setFlags(flags)
+                    stateBtn.value = BtnState.PAUSE
+                    useCase.setCounter(counterFlag)
+                }
+            }
+
+            BtnState.FLAG -> {}
+        }
     }
 
+
     private fun start() {
-        job = viewModelScope.launch(Dispatchers.Unconfined) {
+        viewModelScope.launch(Dispatchers.Unconfined) {
             while (process.value) {
-                Log.d("XXX", "start: state")
                 delay(10)
                 timer += 10
                 stateStopWatch.value = timer.toTime()
@@ -212,10 +253,6 @@ class HomeScreenVMImpl @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        job?.cancel()
-        super.onCleared()
-    }
 
     private fun clear() {
         animationText.value = Animations(64.dp, 0.9f, 0.1f)

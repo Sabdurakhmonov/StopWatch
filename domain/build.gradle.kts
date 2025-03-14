@@ -52,6 +52,4 @@ dependencies {
     //data
     implementation(project(":data"))
 
-    //di
-    implementation(project(":di"))
 }

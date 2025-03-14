@@ -12,7 +12,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import uz.abdurakhmonov.data.remote.HistoryDate
 import javax.inject.Inject
@@ -28,7 +30,6 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
         val STATE = stringPreferencesKey("state")
         val TIME = stringPreferencesKey("time")
         val COUNTER = intPreferencesKey("counter")
-
     }
 
     suspend fun setDate(date: Long) = withContext(Dispatchers.IO) {
@@ -44,11 +45,11 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
         }
     }
 
-    suspend fun getFlags(): List<HistoryDate> = withContext(Dispatchers.IO) {
+   fun getFlags(): Flow<List<HistoryDate>> = flow {
         val preferences = context.dataStore.data.first()
         val flagJson = preferences[FLAGS] ?: "[]"
         val type = object : TypeToken<List<HistoryDate>>() {}.type
-        Gson().fromJson(flagJson, type) ?: emptyList()
+        emit(Gson().fromJson(flagJson, type) ?: emptyList())
     }
 
     suspend fun getDate(): Long = withContext(Dispatchers.IO) {

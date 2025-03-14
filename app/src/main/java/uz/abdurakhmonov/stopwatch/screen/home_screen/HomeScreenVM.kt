@@ -1,6 +1,7 @@
 package uz.abdurakhmonov.stopwatch.screen.home_screen
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import uz.abdurakhmonov.domain.remote.History
 import uz.abdurakhmonov.stopwatch.utils.Animations
 import uz.abdurakhmonov.stopwatch.utils.BtnState
@@ -10,7 +11,7 @@ interface HomeScreenVM{
 
     val stateStart : Flow<Boolean>
     val stateStopWatch: Flow<String>
-    val stateFlags: Flow<List<History>>
+    val stateFlags: SharedFlow<List<History>>
     val stateBtn: Flow<BtnState>
     val animationText: Flow<Animations>
     val screenOrientation:Flow<Orientation>
@@ -25,8 +26,6 @@ interface HomeScreenVM{
     fun screenOrientation(orientation: Orientation)
 
     fun onStart()
-    fun onResume()
-    fun onPause()
     fun onStop()
     fun onDestroy()
 
