@@ -3,7 +3,6 @@ package uz.abdurakhmonov.stopwatch.screen.home_screen
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -80,9 +79,6 @@ fun HomeScreenContent(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> {
-                    viewModel.onStart()
-                }
                 Lifecycle.Event.ON_STOP->{
                     viewModel.onStop()
                 }
@@ -174,9 +170,9 @@ fun HomeScreenContent(
                         icon = painterResource(id = R.drawable.ic_play)
                     ) {
                         viewModel.clickStart()
-                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer?.release()
                         mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
-                            start() // Tugma bosilganda tovush ijro etish
+                            start()
                         }
                     }
                 } else {
@@ -188,9 +184,9 @@ fun HomeScreenContent(
                         icon = state(state = stateBtn, 0)
                     ) {
                         viewModel.clickLeft()
-                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer?.release()
                         mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
-                            start() // Tugma bosilganda tovush ijro etish
+                            start()
                         }
                     }
                     AnimatedButton(
@@ -201,9 +197,9 @@ fun HomeScreenContent(
                         icon = state(state = stateBtn, 1)
                     ) {
                         viewModel.clickRight()
-                        mediaPlayer?.release() // Eski playerni tozalash
+                        mediaPlayer?.release()
                         mediaPlayer = MediaPlayer.create(context, R.raw.music).apply {
-                            start() // Tugma bosilganda tovush ijro etish
+                            start()
                         }
                     }
                 }

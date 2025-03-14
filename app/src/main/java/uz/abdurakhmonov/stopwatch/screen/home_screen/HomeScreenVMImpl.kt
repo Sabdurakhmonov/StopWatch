@@ -1,17 +1,14 @@
 package uz.abdurakhmonov.stopwatch.screen.home_screen
 
-import android.util.Log
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -35,7 +32,6 @@ class HomeScreenVMImpl @Inject constructor(
     override val animationText = MutableStateFlow(Animations(64.dp, 0.9f, 0.1f))
     override val screenOrientation = MutableStateFlow(Orientation.POR)
     override val screenState = MutableStateFlow(true)
-    private var job: Job? = null
 
     private val process = MutableStateFlow(false)
     private var counterFlag = 0
@@ -53,7 +49,7 @@ class HomeScreenVMImpl @Inject constructor(
     }
 
     init {
-        //onStart()
+        onStart()
     }
 
     override fun clickRight() {
@@ -126,7 +122,6 @@ class HomeScreenVMImpl @Inject constructor(
             val state = useCase.getState()
             when (state) {
                 "START" -> {
-                    Log.d("AAA", "onStart: onStart")
                     stateBtn.value = BtnState.START
                     if (useCase.getDate() > 0L) {
                         timer = System.currentTimeMillis() - useCase.getDate() + useCase.getTimer()
@@ -173,7 +168,6 @@ class HomeScreenVMImpl @Inject constructor(
         when (stateBtn.value) {
             BtnState.START -> {
                 viewModelScope.launch {
-                    Log.d("AAA", "onStop: START")
                     useCase.setState(stateBtn.value.name)
                     useCase.setTimer(timer)
                     useCase.setDate(System.currentTimeMillis())
@@ -208,7 +202,6 @@ class HomeScreenVMImpl @Inject constructor(
     override fun onDestroy() {
         when (stateBtn.value) {
             BtnState.START -> {
-                Log.d("AAA", "onDestroy: Start")
                 viewModelScope.launch {
                     useCase.setState(stateBtn.value.name)
                     useCase.setTimer(timer)
@@ -227,7 +220,6 @@ class HomeScreenVMImpl @Inject constructor(
             }
 
             BtnState.PAUSE -> {
-                Log.d("AAA", "onDestroy: PAUSE")
                 viewModelScope.launch {
                     useCase.setState(stateBtn.value.name)
                     useCase.setTimer(timer)
