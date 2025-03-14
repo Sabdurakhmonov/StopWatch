@@ -13,17 +13,11 @@
             @mipmap/ic_launcher
         </item>
 
-        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">300</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">300
+        </item>
 
         <item name="actionBarStyle">@style/MyActionBar</item>
-
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
-
-    <style name="MyActionBar" parent="Widget.AppCompat.ActionBar">
-        <item name="android:background">@android:color/transparent</item>
-        <item name="android:iconTint" tools:targetApi="26">@color/white</item>
-        <item name="android:titleTextColor">@color/white</item>
     </style>
 </resources>
