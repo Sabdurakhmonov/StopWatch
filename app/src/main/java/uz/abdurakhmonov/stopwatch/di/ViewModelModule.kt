@@ -4,13 +4,13 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uz.abdurakhmonov.stopwatch.screen.home_screen.HomeScreenVM
-import uz.abdurakhmonov.stopwatch.screen.home_screen.HomeScreenVMImpl
+import uz.abdurakhmonov.stopwatch.screen.watch_screen.WatchScreenContract
+import uz.abdurakhmonov.stopwatch.screen.watch_screen.WatchScreenVM
 
 @Module
 @InstallIn(SingletonComponent::class)
 interface ViewModelModule {
     @Binds
-    fun bindHomeScreenVM(impl: HomeScreenVMImpl): HomeScreenVM
+    fun bindHomeScreenVM(impl: WatchScreenVM): WatchScreenContract
 
 }

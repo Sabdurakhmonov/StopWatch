@@ -1,15 +1,13 @@
-package uz.abdurakhmonov.data.repository
+package uz.abdurakhmonov.data.repository.stop_watch
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import uz.abdurakhmonov.data.local.LocalDataStore
-import uz.abdurakhmonov.data.remote.HistoryDate
+import uz.abdurakhmonov.data.remote.local.HistoryDate
 import javax.inject.Inject
 
-internal class RepositoryImpl @Inject constructor(
+internal class StopWatchRepositoryImpl @Inject constructor(
     private val localDataSource: LocalDataStore,
-) : Repository {
+) : StopWatchRepository {
 
     override suspend fun setDate(date: Long) { localDataSource.setDate(date) }
 
@@ -17,7 +15,7 @@ internal class RepositoryImpl @Inject constructor(
 
     override suspend fun setFlags(flags: List<HistoryDate>) { localDataSource.setFlags(flags) }
 
-    override fun getFlags(): Flow<List<HistoryDate>> = localDataSource.getFlags().flowOn(Dispatchers.IO)
+    override fun getFlags(): Flow<List<HistoryDate>> = localDataSource.getFlags()
 
     override suspend fun getState(): String = localDataSource.getState()
 

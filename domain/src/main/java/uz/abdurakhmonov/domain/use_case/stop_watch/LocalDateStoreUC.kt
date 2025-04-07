@@ -1,7 +1,6 @@
-package uz.abdurakhmonov.domain.use_case
+package uz.abdurakhmonov.domain.use_case.stop_watch
 
 import kotlinx.coroutines.flow.Flow
-import uz.abdurakhmonov.data.remote.HistoryDate
 import uz.abdurakhmonov.domain.remote.History
 
 interface LocalDateStoreUC {

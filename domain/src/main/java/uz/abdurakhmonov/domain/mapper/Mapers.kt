@@ -1,7 +1,6 @@
 package uz.abdurakhmonov.domain.mapper
 
-
-import uz.abdurakhmonov.data.remote.HistoryDate
+import uz.abdurakhmonov.data.remote.local.HistoryDate
 import uz.abdurakhmonov.domain.remote.History
 
 fun HistoryDate.toDomain() = History(

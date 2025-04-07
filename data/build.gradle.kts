@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -48,4 +50,20 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     //coroutine
     implementation(libs.kotlinx.coroutines.core)
+
+    //Chuck
+    debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
+    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:3.5.2")
+
+    //RETROFIT
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    //Swipe refresh
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    //location
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+
+
 }

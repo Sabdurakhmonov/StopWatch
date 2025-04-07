@@ -1,5 +1,7 @@
 package uz.abdurakhmonov.stopwatch.utils
 
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
@@ -19,7 +21,7 @@ enum class BtnState{
     START,
     STOP,
     PAUSE,
-    FLAG
+    NONE
 }
 
 enum class Orientation{
@@ -66,7 +68,7 @@ fun state(state: BtnState, index: Int): Painter {
                 painterResource(id = R.drawable.ic_stop)
             }
 
-            BtnState.FLAG -> {
+            BtnState.NONE -> {
                 painterResource(id = R.drawable.ic_flag)
 
             }
@@ -85,9 +87,16 @@ fun state(state: BtnState, index: Int): Painter {
                 painterResource(id = R.drawable.ic_play)
             }
 
-            BtnState.FLAG -> {
+            BtnState.NONE -> {
                 painterResource(id = R.drawable.ic_pause)
             }
         }
+    }
+}
+
+fun playMusic(context: Context, mediaPlayer: MediaPlayer?) {
+    mediaPlayer?.release()
+    mediaPlayer?.apply {
+        start()
     }
 }

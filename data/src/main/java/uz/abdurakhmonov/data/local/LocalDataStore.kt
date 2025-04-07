@@ -14,9 +14,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
-import uz.abdurakhmonov.data.remote.HistoryDate
+import uz.abdurakhmonov.data.remote.local.HistoryDate
 import javax.inject.Inject
 
 internal class LocalDataStore @Inject constructor(@ApplicationContext private val context: Context) {
@@ -34,7 +35,7 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
 
     suspend fun setDate(date: Long) = withContext(Dispatchers.IO) {
         context.dataStore.edit { preferences ->
-            preferences[DATE] = date?:0L
+            preferences[DATE] = date
         }
     }
 
@@ -45,16 +46,16 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
         }
     }
 
-   fun getFlags(): Flow<List<HistoryDate>> = flow {
-        val preferences = context.dataStore.data.first()
-        val flagJson = preferences[FLAGS] ?: "[]"
+    fun getFlags(): Flow<List<HistoryDate>> = flow {
+        val preferences = context.dataStore.data.firstOrNull()
+        val flagJson = preferences?.get(FLAGS) ?: "[]"
         val type = object : TypeToken<List<HistoryDate>>() {}.type
-        emit(Gson().fromJson(flagJson, type) ?: emptyList())
+        emit(json.fromJson(flagJson, type) ?: emptyList())
     }
 
     suspend fun getDate(): Long = withContext(Dispatchers.IO) {
-        val preferences = context.dataStore.data.first()
-        preferences[DATE] ?: 0L
+        val preferences = context.dataStore.data.firstOrNull()
+        preferences?.get(DATE)?.toLong()?:0L
     }
 
     suspend fun setState(state: String) = withContext(Dispatchers.IO) {
@@ -64,8 +65,8 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
     }
 
     suspend fun getState(): String = withContext(Dispatchers.IO) {
-        val preferences = context.dataStore.data.first()
-        preferences[STATE] ?: ""
+        val preferences = context.dataStore.data.firstOrNull()
+        preferences?.get(STATE) ?: ""
     }
 
     suspend fun setTimer(time: Long) = withContext(Dispatchers.IO) {
@@ -75,8 +76,8 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
     }
 
     suspend fun getTimer(): Long = withContext(Dispatchers.IO) {
-        val preferences = context.dataStore.data.first()
-        preferences[TIME]?.toLong() ?: 0L
+        val preferences = context.dataStore.data.firstOrNull()
+        preferences?.get(TIME)?.toLong() ?: 0L
     }
 
     suspend fun setCounter(counter: Int) = withContext(Dispatchers.IO) {
@@ -86,7 +87,7 @@ internal class LocalDataStore @Inject constructor(@ApplicationContext private va
     }
 
     suspend fun getCounter(): Int = withContext(Dispatchers.IO) {
-        val preferences = context.dataStore.data.first()
-        preferences[COUNTER] ?: 0
+        val preferences = context.dataStore.data.firstOrNull()
+        preferences?.get(COUNTER) ?: 0
     }
 }
